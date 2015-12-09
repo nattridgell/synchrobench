@@ -118,3 +118,13 @@ int sl_set_size(sl_intset_t *set);
  * be too high for given values of range and initial.
  */
 inline long rand_range(long r);
+
+inline void *xmalloc(size_t size)
+{
+  void *p = malloc(size);
+  if (p == NULL) {
+    perror("malloc");
+    exit(1);
+  }
+  return p;
+}
