@@ -2,7 +2,7 @@ ROOT = ../../..
 
 include $(ROOT)/common/Makefile.common
 
-BINS = $(BINDIR)/$(LOCK)-skiplist
+BINS = $(BINDIR)/versioned-skiplist
 
 CFLAGS +=  -std=gnu11 # -Wall -pedantic
 #LDFLAGS += -ltcmalloc

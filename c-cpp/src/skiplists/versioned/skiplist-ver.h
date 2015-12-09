@@ -50,8 +50,8 @@ typedef uint32_t vlock_t;
 
 #define VAL_MIN                         INT_MIN
 #define VAL_MAX                         INT_MAX
-#define MAX_H 32
-#define TOP 31
+#define MAX_H                           32
+#define TOP                             (MAX_H - 1)
 
 
 typedef struct sl_node {
