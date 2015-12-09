@@ -156,10 +156,10 @@ void try_remove_at_level(sl_node_t *prev, sl_node_t *curr, int level, int *heigh
   curr->current_height--;
   prev->next[level] = curr->next[level];
 
-  unlock_height(curr);
-  ++(*height_ver);
   unlock_level(curr, level);
+  unlock_height(curr);
   unlock_level(prev, level);
+  ++(*height_ver);
   *status = OK;
 }
 
