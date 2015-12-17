@@ -81,17 +81,17 @@ int validate(sl_node_t *prev, sl_node_t *curr, int level, enum STATE *status) {
 }
 
 // Changes the state to ABORT, TERMINATE, or OK
-void try_lock_level_and_height(sl_node_t *prev, sl_node_t *curr, sl_node_t *node_update_height, int level, int *height_ver, int *level_version, enum STATE *status) {
+void try_lock_level_and_height(sl_node_t *prev, sl_node_t *curr, sl_node_t *node_update_height, int level, int *height_ver, enum STATE *status) {
   if (*height_ver != get_height_version(node_update_height)) {
     *status = TERMINATE;
     return;
   }
 
-  *level_version = validate(prev, curr, level, status);
+  int level_version = validate(prev, curr, level, status);
   if (*status == ABORT)
     return;
 
-  if (!try_lock_level_version(prev, *level_version, level)) {
+  if (!try_lock_level_version(prev, level_version, level)) {
     *status = ABORT;
     return;
   }
@@ -112,7 +112,6 @@ void traverse(val_t val, int from, int to, sl_node_t **prevs, sl_node_t **currs,
   while (prev->current_height <= from) {
     prev = prevs[++from];
   }
-    
 
   for (int level = from; level >= to; --level) {
     curr = prev->next[level];
@@ -126,17 +125,13 @@ void traverse(val_t val, int from, int to, sl_node_t **prevs, sl_node_t **currs,
 }
 
 void try_insert_at_level(sl_node_t *prev, sl_node_t *curr, sl_node_t *new_node, int level, int *height_ver, enum STATE *status) {
-  int level_version = 0;
-  // printf("Try insert val %d at lvl %d\n", new_node->val, level);
-  try_lock_level_and_height(prev, curr, new_node, level, height_ver, &level_version, status);
-  if (*status == ABORT || *status == TERMINATE)
+  try_lock_level_and_height(prev, curr, new_node, level, height_ver, status);
+  if (*status != OK)
     return;
 
   new_node->next[level] = curr;
   new_node->current_height++;
   prev->next[level] = new_node;
-
-  // printf("New node current_height %d after insert at lvl %d\n",new_node->current_height, level );
 
   unlock_height(new_node);
   ++(*height_ver);
@@ -145,13 +140,10 @@ void try_insert_at_level(sl_node_t *prev, sl_node_t *curr, sl_node_t *new_node, 
 }
 
 void try_remove_at_level(sl_node_t *prev, sl_node_t *curr, int level, int *height_ver, enum STATE *status) {
-  int level_version = 0;
-
-  try_lock_level_and_height(prev, curr, curr, level, height_ver, &level_version, status);
-  if (*status == ABORT || *status == TERMINATE)
+  try_lock_level_and_height(prev, curr, curr, level, height_ver, status);
+  if (*status != OK)
     return;
 
-  // Need to edit from here!!!
   lock_level(curr, level);
   curr->current_height--;
   prev->next[level] = curr->next[level];
@@ -181,7 +173,6 @@ int set_insert(sl_intset_t *set, val_t val) {
     curr = currs[0];
 
     if (curr->val == val) {
-      // printf("Found value %d\n", val);
       // Linearise insert
       do {
         height_ver = get_height_version(curr);
@@ -204,7 +195,6 @@ int set_insert(sl_intset_t *set, val_t val) {
     } else {
       if (!new_node)
         new_node = sl_new_simple_node(val, target_height);
-      // printf("New node %d, with target_height %d\n", new_node->val, new_node->target_height);
       node_to_insert = new_node;
       height_ver = get_height_version(new_node);
       try_insert_at_level(prev, curr, node_to_insert, 0, &height_ver, &status);
@@ -217,13 +207,11 @@ int set_insert(sl_intset_t *set, val_t val) {
     prev = prevs[level];
     curr = currs[level];
     try_insert_at_level(prev, curr, node_to_insert, level, &height_ver, &status);
-    if (status == ABORT)
+    if (status == ABORT) {
       traverse(val, level, level, prevs, currs, set->head);
-    else if (status == TERMINATE) {
-      // printf("Status Terminate\n");
+    } else if (status == TERMINATE) {
       return 1;
     } else {
-      // printf("Successful insert at %d\n", level);
       level++;
     }
   }
