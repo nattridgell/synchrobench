@@ -235,6 +235,36 @@ void *test(void *data) {
   return NULL;
 }
 
+void target_and_height_distribution_analysis(unsigned long statistics[], sl_intset_t *set) {
+  sl_node_t *current = set->head->next[0];
+  while (current->next[0] != NULL) {
+    if (current->target_height < current->current_height) {
+      statistics[0]++;
+    } else if (current->target_height == current->current_height) {
+      statistics[1]++;
+    } else {
+      statistics[2]++;
+      printf("ERROR: Target_height %d less than current_height %d\n", current->target_height, current->current_height);
+    }
+    current = current->next[0];
+  }
+}
+
+// isCurrentAnalysis = 0 -> target_height.  isCurrentAnalysis = 1 -> current_height
+void print_height_distribution_analysis(int isCurrentAnalysis, sl_intset_t *set) {
+  unsigned long *statistics = (unsigned long *)calloc(MAX_H + 1, sizeof(unsigned long));
+  sl_node_t *current = set->head->next[0];
+  while (current->next[0] != NULL) {
+    height_t value = (isCurrentAnalysis < 1) ? current->target_height : current->current_height;
+    statistics[value]++;
+    current = current->next[0];
+  }
+  for (int i = 0; i < MAX_H + 1; i++) {
+    printf(" %lu", statistics[i]);
+  }
+  free(statistics);
+}
+
 /*void catcher(int sig) {
   printf("CAUGHT SIGNAL %d\n", sig);
 }*/
@@ -615,6 +645,16 @@ int main(int argc, char **argv) {
          aborts_double_write * 1000.0 / duration);
   printf("  #failures   : %lu\n",  failures_because_contention);
   printf("Max retries   : %lu\n", max_retries);
+
+  unsigned long statistics[] = {0, 0, 0};
+  target_and_height_distribution_analysis(statistics, set);
+  printf("#Height anomily: %lu\n", statistics[0]);
+  printf("#Height normal : %lu\n", statistics[1]);
+  printf("#Current height:");
+  print_height_distribution_analysis(1, set);
+  printf("\n#Target height :");
+  print_height_distribution_analysis(0, set);
+  printf("\n");
   
   /* Delete set */
   sl_set_delete(set);
