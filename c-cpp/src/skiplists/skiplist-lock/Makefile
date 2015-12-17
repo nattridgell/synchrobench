@@ -3,7 +3,7 @@ ROOT = ../../..
 include $(ROOT)/common/Makefile.common
 
 BINS = $(BINDIR)/$(LOCK)-skiplist
-
+CC=gcc-4.9
 .PHONY:	all clean
 
 all:	main

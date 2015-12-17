@@ -90,7 +90,7 @@ typedef struct sl_intset {
 	sl_node_t *head;
 } sl_intset_t;
 
-inline void *xmalloc(size_t size);
+extern inline void *xmalloc(size_t size);
 inline int rand_100();
 
 int get_rand_level();
@@ -99,17 +99,17 @@ int floor_log_2(unsigned int n);
 /* 
  * Create a new node without setting its next fields. 
  */
-sl_node_t *sl_new_simple_node(val_t val, int toplevel, int transactional);
+extern sl_node_t *sl_new_simple_node(val_t val, int toplevel, int transactional);
 /* 
  * Create a new node with its next field. 
  * If next=NULL, then this create a tail node. 
  */
-sl_node_t *sl_new_node(val_t val, sl_node_t *next, int toplevel, int 
+extern sl_node_t *sl_new_node(val_t val, sl_node_t *next, int toplevel, int 
 transactional);
-void sl_delete_node(sl_node_t *n);
+extern void sl_delete_node(sl_node_t *n);
 sl_intset_t *sl_set_new();
-void sl_set_delete(sl_intset_t *set);
-int sl_set_size(sl_intset_t *set);
+extern void sl_set_delete(sl_intset_t *set);
+extern int sl_set_size(sl_intset_t *set);
 
 /* 
  * Returns a pseudo-random value in [1;range).
@@ -118,13 +118,3 @@ int sl_set_size(sl_intset_t *set);
  * be too high for given values of range and initial.
  */
 inline long rand_range(long r);
-
-inline void *xmalloc(size_t size)
-{
-  void *p = malloc(size);
-  if (p == NULL) {
-    perror("malloc");
-    exit(1);
-  }
-  return p;
-}

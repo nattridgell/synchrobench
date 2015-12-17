@@ -25,6 +25,15 @@
 
 unsigned int levelmax;
 
+inline void *xmalloc(size_t size)
+{
+  void *p = malloc(size);
+  if (p == NULL) {
+    perror("malloc");
+    exit(1);
+  }
+  return p;
+}
 
 /* 
  * Returns a pseudo-random value in [1;range).
