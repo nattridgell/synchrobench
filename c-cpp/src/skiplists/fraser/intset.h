@@ -22,7 +22,7 @@
  */
 
 #ifndef INTSET_H_
-#define INTSET_T_
+#define INTSET_H_
 
 #include "set.h"
 
