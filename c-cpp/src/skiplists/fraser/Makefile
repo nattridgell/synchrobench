@@ -4,6 +4,7 @@ include $(ROOT)/common/Makefile.common
 
 BINS = $(BINDIR)/lockfree-fraser-skiplist
 
+CC = gcc-4.9
 DEBUGGING := -DNDEBUG
 INCLUDE   := -I../../include/
 
