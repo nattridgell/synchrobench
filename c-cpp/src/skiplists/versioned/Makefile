@@ -4,7 +4,7 @@ include $(ROOT)/common/Makefile.common
 
 BINS = $(BINDIR)/versioned-skiplist
 
-CFLAGS +=  -std=gnu11 # -Wall -pedantic
+CFLAGS +=  -std=gnu11 -Wall -pedantic
 #LDFLAGS += -ltcmalloc
 
 CC = gcc

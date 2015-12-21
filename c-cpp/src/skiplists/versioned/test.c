@@ -111,7 +111,7 @@ inline long rand_range(long r) {
 /* Re-entrant version of rand_range(r) */
 // Returns values in the range [1, r]
 inline long rand_range_re(unsigned int *seed, long r) {
-  int m = 2147483647;
+  int m = RAND_MAX;
   long d, v = 0;
   
   do {
@@ -458,7 +458,7 @@ int main(int argc, char **argv) {
     srand(seed);
   
   set = sl_set_new();
-  stop = 0;
+  atomic_store(&stop, 0);
   
   /* Init STM */
   //printf("Initializing STM\n");

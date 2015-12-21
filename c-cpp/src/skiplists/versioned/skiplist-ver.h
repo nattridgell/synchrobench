@@ -40,10 +40,6 @@
 
 extern unsigned int global_seed;
 
-
-/* Skip list level */
-extern unsigned int levelmax;
-
 typedef uint32_t height_t;
 typedef int val_t;
 typedef uint32_t vlock_t;
@@ -56,8 +52,8 @@ typedef uint32_t vlock_t;
 
 typedef struct sl_node {
   val_t val;
-  height_t target_height;
-  height_t current_height;
+  volatile height_t target_height;
+  volatile height_t current_height;
   _Atomic(vlock_t) hlock;
   struct sl_node *next[MAX_H];
   _Atomic(vlock_t) vlock[MAX_H];

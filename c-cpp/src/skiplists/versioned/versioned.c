@@ -3,7 +3,7 @@
 /** Functions for version locking on a single node **/
 
 inline int exists(sl_node_t *node) {
-  return (node->target_height == 0 ? 0 : 1);
+  return (node->target_height != 0);
 }
 
 /**
@@ -12,7 +12,7 @@ inline int exists(sl_node_t *node) {
  *   - to change the next pointer for a given level
  *
  **/
-inline int get_level_version(sl_node_t *node, height_t height) {
+inline vlock_t get_level_version(sl_node_t *node, height_t height) {
   vlock_t val = atomic_load(&node->vlock[height]);
   return val & ~((vlock_t)1);
 }
@@ -43,7 +43,7 @@ void unlock_level(sl_node_t *node, height_t height) {
  *
  * Note: the target height of a node is also used for logical deletion.
  **/
-inline int get_height_version(sl_node_t *node) {
+inline vlock_t get_height_version(sl_node_t *node) {
   vlock_t val = atomic_load(&node->hlock);
   return val & ~((vlock_t)1);  
 }
@@ -71,7 +71,7 @@ void unlock_height(sl_node_t *node) {
  */
 
 int validate(sl_node_t *prev, sl_node_t *curr, int level, enum STATE *status) {
-  int level_version = get_level_version(prev, level);
+  vlock_t level_version = get_level_version(prev, level);
   if (prev->current_height <= level || prev->next[level] != curr) {
     *status = ABORT;
     return 0;
@@ -81,13 +81,13 @@ int validate(sl_node_t *prev, sl_node_t *curr, int level, enum STATE *status) {
 }
 
 // Changes the state to ABORT, TERMINATE, or OK
-void try_lock_level_and_height(sl_node_t *prev, sl_node_t *curr, sl_node_t *node_update_height, int level, int *height_ver, enum STATE *status) {
+void try_lock_level_and_height(sl_node_t *prev, sl_node_t *curr, sl_node_t *node_update_height, int level, vlock_t *height_ver, enum STATE *status) {
   if (*height_ver != get_height_version(node_update_height)) {
     *status = TERMINATE;
     return;
   }
 
-  int level_version = validate(prev, curr, level, status);
+  vlock_t level_version = validate(prev, curr, level, status);
   if (*status == ABORT)
     return;
 
@@ -124,7 +124,7 @@ void traverse(val_t val, int from, int to, sl_node_t **prevs, sl_node_t **currs,
   }
 }
 
-void try_insert_at_level(sl_node_t *prev, sl_node_t *curr, sl_node_t *new_node, int level, int *height_ver, enum STATE *status) {
+void try_insert_at_level(sl_node_t *prev, sl_node_t *curr, sl_node_t *new_node, int level, vlock_t *height_ver, enum STATE *status) {
   try_lock_level_and_height(prev, curr, new_node, level, height_ver, status);
   if (*status != OK)
     return;
@@ -139,7 +139,7 @@ void try_insert_at_level(sl_node_t *prev, sl_node_t *curr, sl_node_t *new_node, 
   *status = OK;
 }
 
-void try_remove_at_level(sl_node_t *prev, sl_node_t *curr, int level, int *height_ver, enum STATE *status) {
+void try_remove_at_level(sl_node_t *prev, sl_node_t *curr, int level, vlock_t *height_ver, enum STATE *status) {
   try_lock_level_and_height(prev, curr, curr, level, height_ver, status);
   if (*status != OK)
     return;
@@ -161,7 +161,7 @@ int set_insert(sl_intset_t *set, val_t val) {
   sl_node_t *prev, *curr, *new_node, *node_to_insert;
   new_node = NULL;
   node_to_insert = NULL;
-  height_t height_ver;
+  vlock_t height_ver;
   int target_height = get_rand_level();
   enum STATE status;
   int traverse_from = TOP;
@@ -223,7 +223,7 @@ int set_delete(sl_intset_t *set, val_t val) {
   sl_node_t *prevs[MAX_H];
   sl_node_t *currs[MAX_H];
   sl_node_t *prev, *curr;
-  height_t height_ver;
+  vlock_t height_ver;
   enum STATE status = OK;
 
   traverse(val, TOP, 0, prevs, currs, set->head);
