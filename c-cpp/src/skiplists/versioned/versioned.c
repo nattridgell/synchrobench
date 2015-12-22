@@ -52,14 +52,6 @@ inline int try_lock_height_version(sl_node_t *node, vlock_t ver) {
   return atomic_compare_exchange_strong(&node->hlock, &ver, ver + 1);
 }
 
-// TODO: Use spinlock here?
-static inline void lock_height(sl_node_t *node) {
-  vlock_t ver;
-  do {
-    ver = get_height_version(node);
-  } while (!try_lock_height_version(node, ver));
-}
-
 void unlock_height(sl_node_t *node) {
   atomic_fetch_add(&node->hlock, 1);
 }
@@ -187,7 +179,7 @@ int set_insert(sl_intset_t *set, val_t val) {
         } else if (try_lock_height_version(curr, height_ver)) {
           curr->target_height = target_height;
           unlock_height(curr);
-          height_ver++;
+          height_ver += 2;
           node_to_insert = curr;
           break;
         }

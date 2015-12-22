@@ -58,7 +58,7 @@ sl_node_t *sl_new_simple_node(val_t val, int target_height)
   node->target_height = target_height;
   node->current_height = 0;
   node->next = (sl_node_t **)check_loc(malloc(MAX_H*sizeof(sl_node_t *)));
-  node->vlock = (_Atomic(vlock_t) *)check_loc(malloc(MAX_H*sizeof(vlock_t *)));
+  node->vlock = (_Atomic(vlock_t) *)check_loc(malloc(MAX_H*sizeof(_Atomic(vlock_t) *)));
   // Initialise atomics
   for (int i = 0; i < MAX_H; ++i)
     node->vlock[i] = ATOMIC_VAR_INIT(0);
