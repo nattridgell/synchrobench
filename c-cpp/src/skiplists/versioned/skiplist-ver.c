@@ -53,7 +53,7 @@ int floor_log_2(unsigned int n) {
 sl_node_t *sl_new_simple_node(val_t val, int target_height)
 {
   sl_node_t *node;
-  node = (sl_node_t *)check_loc(calloc(1, sizeof(sl_node_t)));
+  node = (sl_node_t *)check_loc(malloc(sizeof(sl_node_t)));
   node->val = val;
   node->target_height = target_height;
   node->current_height = 0;
