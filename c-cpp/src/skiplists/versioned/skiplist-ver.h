@@ -55,8 +55,8 @@ typedef struct sl_node {
   volatile height_t target_height;
   volatile height_t current_height;
   _Atomic(vlock_t) hlock;
-  struct sl_node *next[MAX_H];
-  _Atomic(vlock_t) vlock[MAX_H];
+  struct sl_node **next; // Pointer to array of next node pointers of size MAX_H
+  _Atomic(vlock_t) *vlock; // Pointer to array of version locks for levels of size MAX_H
 } sl_node_t;
 
 typedef struct sl_intset {

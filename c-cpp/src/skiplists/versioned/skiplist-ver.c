@@ -57,6 +57,8 @@ sl_node_t *sl_new_simple_node(val_t val, int target_height)
   node->val = val;
   node->target_height = target_height;
   node->current_height = 0;
+  node->next = (sl_node_t **)check_loc(malloc(MAX_H*sizeof(sl_node_t *)));
+  node->vlock = (_Atomic(vlock_t) *)check_loc(malloc(MAX_H*sizeof(vlock_t *)));
   // Initialise atomics
   for (int i = 0; i < MAX_H; ++i)
     node->vlock[i] = ATOMIC_VAR_INIT(0);
@@ -80,8 +82,11 @@ sl_node_t *sl_new_node(val_t val, sl_node_t *next, int target_height)
 
 void sl_delete_node(sl_node_t *node)
 {
-  if (node)
-    free(node);
+  if (!node)
+    return;
+  free(node->next);
+  free(node->vlock);
+  free(node);
 }
 
 sl_intset_t *sl_set_new()
